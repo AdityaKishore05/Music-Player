@@ -119,7 +119,7 @@ const SongsList = () => {
         Songs Collection
       </h2>
       <ul className="space-y-4">
-        {songs.map((song) => (
+        {songs.map((song: any) => (
           <li
             key={song.id}
             className="flex justify-between items-center hover:bg-[#ec0000] rounded-md cursor-pointer text-lg hover:py-2 sm:px-4 my-4 duration-200 transition-all ease-in-out hover:text-amber-300"

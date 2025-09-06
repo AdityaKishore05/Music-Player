@@ -9,8 +9,8 @@ export const MusicProvider = ({ children }: { children: React.ReactNode }) => {
   const toggleFavourite = (song: any) => {
     setFavourites(
       (prev) =>
-        prev.find((s) => s.id === song.id)
-          ? prev.filter((s) => s.id !== song.id)
+        prev.find((s: any) => s.id === song.id)
+          ? prev.filter((s: any) => s.id !== song.id)
           : [...prev, song] 
     );
   };
