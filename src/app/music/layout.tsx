@@ -1,20 +1,19 @@
-import React, { ReactNode } from "react";
+// app/music/layout.tsx
+import type { ReactNode } from "react";
 import Sidebar from "./@sidebar/page";
 import { MusicProvider } from "./MusicContext";
 
-const MusicLayout = ({
+export default function MusicLayout({
   children,
   sidebar,
   songs,
   player,
-  context, // ✅ add this
 }: {
   children: ReactNode;
   sidebar: ReactNode;
   songs: ReactNode;
   player: ReactNode;
-  context: ReactNode; // 👈 you can type this better, but `any` avoids build errors
-}) => {
+}) {
   return (
     <MusicProvider>
       <div className="flex bg-gray-900 h-screen overflow-hidden">
@@ -35,6 +34,4 @@ const MusicLayout = ({
       </div>
     </MusicProvider>
   );
-};
-
-export default MusicLayout;
+}
