@@ -116,4 +116,4 @@ const SongPage = () => {
   );
 };
 
-export { SongPage, songs };
+export default SongPage;
