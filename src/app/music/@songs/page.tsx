@@ -146,7 +146,7 @@ const SongsList = () => {
                 className="hover:text-amber-300"
               >
                 {isFavourite(song.id) ? (
-                  <Heart fill="currentColor" />
+                  <Heart fill="currentColor" className="text-amber-300" />
                 ) : (
                   <Heart />
                 )}
