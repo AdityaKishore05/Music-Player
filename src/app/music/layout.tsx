@@ -3,18 +3,28 @@ import Sidebar from "./@sidebar/page";
 import { MusicProvider } from "./MusicContext";
 
 const MusicLayout = ({
-  player,
+  children, // ✅ required
+  sidebar, // ✅ required by Next
   songs,
+  player,
 }: {
   children: ReactNode;
-  player: ReactNode;
+  sidebar: ReactNode;
   songs: ReactNode;
+  player: ReactNode;
 }) => {
   return (
     <MusicProvider>
       <div className="flex bg-gray-900 h-screen overflow-hidden">
-        <Sidebar />
-        <div className="flex-1 overflow-y-auto sm:ml-64">{songs}</div>
+        {/* Use your sidebar slot (not hard import) */}
+        <div className="fixed top-0 left-0 h-full w-64">
+          {sidebar || <Sidebar />}
+        </div>
+
+        <div className="flex-1 overflow-y-auto sm:ml-64">
+          {songs || children}
+        </div>
+
         <div className="fixed bottom-0 left-64 right-0 bg-gray-800 border-t border-gray-700">
           {player}
         </div>
