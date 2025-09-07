@@ -2,21 +2,22 @@ import type { ReactNode } from "react";
 import Sidebar from "./@sidebar/page";
 import { MusicProvider } from "./MusicContext";
 
-// @ts-ignore: Ignore Next.js LayoutProps type mismatch
+// Define props type
+interface MusicLayoutProps {
+  children: ReactNode;
+  sidebar: ReactNode;
+  songs: ReactNode;
+  player: ReactNode;
+}
+
+// Define context type (you can expand if needed)
+interface LayoutContext {
+  params: Record<string, string | string[]>;
+}
+
 export default function MusicLayout(
-  {
-    children,
-    sidebar,
-    songs,
-    player,
-  }: {
-    children: ReactNode;
-    sidebar: ReactNode;
-    songs: ReactNode;
-    player: ReactNode;
-  },
-  // @ts-ignore: context is required by Next.js but unused here
-  _context: unknown
+  { children, sidebar, songs, player }: MusicLayoutProps,
+  _context: LayoutContext
 ) {
   return (
     <MusicProvider>
