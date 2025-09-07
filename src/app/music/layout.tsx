@@ -1,19 +1,21 @@
-// app/music/layout.tsx
 import type { ReactNode } from "react";
 import Sidebar from "./@sidebar/page";
 import { MusicProvider } from "./MusicContext";
 
-export default function MusicLayout({
-  children,
-  sidebar,
-  songs,
-  player,
-}: {
-  children: ReactNode;
-  sidebar: ReactNode;
-  songs: ReactNode;
-  player: ReactNode;
-}) {
+export default function MusicLayout(
+  {
+    children,
+    sidebar,
+    songs,
+    player,
+  }: {
+    children: ReactNode;
+    sidebar: ReactNode;
+    songs: ReactNode;
+    player: ReactNode;
+  },
+  _context: unknown // 👈 context ko ignore kar rahe hain
+) {
   return (
     <MusicProvider>
       <div className="flex bg-gray-900 h-screen overflow-hidden">
