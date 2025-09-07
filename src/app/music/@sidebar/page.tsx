@@ -32,23 +32,27 @@ const Sidebar = () => {
           {favourites.length === 0 && (
             <p className="text-gray-300 text-sm px-2">No favourites yet</p>
           )}
-          {favourites.map((song: any) => (
-            <Link
-              key={song.id}
-              href={`/music/${song.id}`}
-              className="flex gap-3 items-center hover:bg-gray-900 rounded-md cursor-pointer px-2 py-2 transition"
-            >
-              <img
-                src="https://picfiles.alphacoders.com/462/462928.jpg"
-                className="h-10 w-10 rounded-md"
-                alt={song.title}
-              />
-              <div>
-                <p className="text-white text-sm font-medium">{song.title}</p>
-                <p className="text-white text-xs font-serif">{song.artist}</p>
-              </div>
-            </Link>
-          ))}
+          {favourites.map(
+            (
+              song
+            ) => (
+              <Link
+                key={song.id}
+                href={`/music/${song.id}`}
+                className="flex gap-3 items-center hover:bg-gray-900 rounded-md cursor-pointer px-2 py-2 transition"
+              >
+                <img
+                  src="https://picfiles.alphacoders.com/462/462928.jpg"
+                  className="h-10 w-10 rounded-md"
+                  alt={song.title}
+                />
+                <div>
+                  <p className="text-white text-sm font-medium">{song.title}</p>
+                  <p className="text-white text-xs font-serif">{song.artist}</p>
+                </div>
+              </Link>
+            )
+          )}
         </ul>
       </section>
     </aside>
