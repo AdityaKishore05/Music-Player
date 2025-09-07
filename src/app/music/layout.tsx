@@ -1,23 +1,20 @@
-import type { ReactNode } from "react";
+import { ReactNode } from "react";
 import Sidebar from "./@sidebar/page";
 import { MusicProvider } from "./MusicContext";
 
-// ✅ Only your props
-interface MusicLayoutProps {
-  children: ReactNode;
-  sidebar: ReactNode;
-  songs: ReactNode;
-  player: ReactNode;
-}
-
-// ✅ Context from Next.js (kept generic but typed)
-interface LayoutContext {
-  params: Record<string, string | string[]>;
-}
-
 export default function MusicLayout(
-  { children, sidebar, songs, player }: MusicLayoutProps,
-  _context: LayoutContext
+  {
+    children,
+    sidebar,
+    songs,
+    player,
+  }: {
+    children: ReactNode;
+    sidebar: ReactNode;
+    songs: ReactNode;
+    player: ReactNode;
+  },
+  _context: unknown // ✅ keep second arg but don’t type it strictly
 ) {
   return (
     <MusicProvider>
