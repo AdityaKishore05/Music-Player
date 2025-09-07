@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Sidebar from "./@sidebar/page";
 import { MusicProvider } from "./MusicContext";
 
-// Define props type
+// ✅ Only your props
 interface MusicLayoutProps {
   children: ReactNode;
   sidebar: ReactNode;
@@ -10,7 +10,7 @@ interface MusicLayoutProps {
   player: ReactNode;
 }
 
-// Define context type (you can expand if needed)
+// ✅ Context from Next.js (kept generic but typed)
 interface LayoutContext {
   params: Record<string, string | string[]>;
 }
