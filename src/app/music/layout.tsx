@@ -2,24 +2,15 @@ import { ReactNode } from "react";
 import Sidebar from "./@sidebar/page";
 import { MusicProvider } from "./MusicContext";
 
-// ✅ simplified, matches what Next.js expects
-export default function MusicLayout(
-  {
-    children,
-    sidebar,
-    songs,
-    player,
-    context, // 👈 include context so Next is happy
-  }: {
-    children: ReactNode;
-    sidebar: ReactNode;
-    songs: ReactNode;
-    player: ReactNode;
-    context: ReactNode; // ✅ even if you don’t use it
-  },
-  // @ts-expect-error  -- Next.js injects extra args we don't care about
-  _context
-) {
+export default function MusicLayout({
+  sidebar,
+  songs,
+  player,
+}: {
+  sidebar: ReactNode;
+  songs: ReactNode;
+  player: ReactNode;
+}) {
   return (
     <MusicProvider>
       <div className="flex bg-gray-900 h-screen overflow-hidden">
@@ -30,7 +21,7 @@ export default function MusicLayout(
 
         {/* Songs or children */}
         <div className="flex-1 overflow-y-auto sm:ml-64">
-          {songs || children}
+          {songs}
         </div>
 
         {/* Player at bottom */}
