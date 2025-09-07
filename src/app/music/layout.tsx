@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Sidebar from "./@sidebar/page";
 import { MusicProvider } from "./MusicContext";
 
-// Layout must have TWO arguments: props + context
+// @ts-ignore: Ignore Next.js LayoutProps type mismatch
 export default function MusicLayout(
   {
     children,
@@ -15,7 +15,8 @@ export default function MusicLayout(
     songs: ReactNode;
     player: ReactNode;
   },
-  _context: unknown // 👈 context yahan hona chahiye (2nd arg)
+  // @ts-ignore: context is required by Next.js but unused here
+  _context: unknown
 ) {
   return (
     <MusicProvider>
