@@ -2,20 +2,20 @@ import { ReactNode } from "react";
 import Sidebar from "./@sidebar/page";
 import { MusicProvider } from "./MusicContext";
 
-export default function MusicLayout(
-  {
-    children,
-    sidebar,
-    songs,
-    player,
-  }: {
-    children: ReactNode;
-    sidebar: ReactNode;
-    songs: ReactNode;
-    player: ReactNode;
-  },
-  _context: unknown // ✅ keep second arg but don’t type it strictly
-) {
+export default function MusicLayout({
+  children,
+  sidebar,
+  songs,
+  player,
+  context,
+}: {
+  children: ReactNode;
+  sidebar: ReactNode;
+  songs: ReactNode;
+  player: ReactNode;
+  context: ReactNode;
+}) {
+  
   return (
     <MusicProvider>
       <div className="flex bg-gray-900 h-screen overflow-hidden">
