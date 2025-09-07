@@ -13,7 +13,7 @@ const MusicLayout = ({
   sidebar: ReactNode;
   songs: ReactNode;
   player: ReactNode;
-  context: any; // 👈 you can type this better, but `any` avoids build errors
+  context: ReactNode; // 👈 you can type this better, but `any` avoids build errors
 }) => {
   return (
     <MusicProvider>
