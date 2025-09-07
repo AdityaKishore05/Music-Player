@@ -91,7 +91,7 @@ const songs = [
 
 const SongPage = () => {
   const params = useParams();
-  const song = songs.find((s: any) => s.id === Number(params.id));
+  const song = songs.find((s) => s.id === Number(params.id));
 
   useEffect(() => {
     if (song) {
@@ -116,4 +116,4 @@ const SongPage = () => {
   );
 };
 
-export default SongPage;
+export { SongPage, songs };

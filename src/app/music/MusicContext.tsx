@@ -1,17 +1,32 @@
 "use client";
 import React, { createContext, useContext, useState } from "react";
 
-const MusicContext = createContext<any>(null);
+// Define the shape of a song
+export type Song = {
+  id: number;
+  title: string;
+  artist: string;
+  file: string;
+  time?: string; // optional, since not all songs may have time
+};
+
+// Define the context type
+type MusicContextType = {
+  favourites: Song[];
+  toggleFavourite: (song: Song) => void;
+};
+
+// Create context with correct type
+const MusicContext = createContext<MusicContextType | null>(null);
 
 export const MusicProvider = ({ children }: { children: React.ReactNode }) => {
-  const [favourites, setFavourites] = useState<any[]>([]);
+  const [favourites, setFavourites] = useState<Song[]>([]);
 
-  const toggleFavourite = (song: any) => {
-    setFavourites(
-      (prev) =>
-        prev.find((s: any) => s.id === song.id)
-          ? prev.filter((s: any) => s.id !== song.id)
-          : [...prev, song] 
+  const toggleFavourite = (song: Song) => {
+    setFavourites((prev) =>
+      prev.find((s) => s.id === song.id)
+        ? prev.filter((s) => s.id !== song.id)
+        : [...prev, song]
     );
   };
 

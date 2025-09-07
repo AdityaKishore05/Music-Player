@@ -5,6 +5,7 @@ import { Heart } from "lucide-react";
 import { usePlayer } from "@/app/music/@context/PlayerContext";
 import { useMusic } from "../MusicContext";
 
+
 const songs = [
   {
     id: 1,
@@ -110,8 +111,7 @@ const SongsList = () => {
   const { setCurrentSong } = usePlayer();
   const { favourites, toggleFavourite } = useMusic();
 
-  const isFavourite = (id: number) =>
-    favourites.some((fav: any) => fav.id === id);
+  const isFavourite = (id: number) => favourites.some((fav) => fav.id === id);
 
   return (
     <div className="w-[96%] mx-auto px-2 pb-24">
@@ -119,7 +119,7 @@ const SongsList = () => {
         Songs Collection
       </h2>
       <ul className="space-y-4">
-        {songs.map((song: any) => (
+        {songs.map((song) => (
           <li
             key={song.id}
             className="flex justify-between items-center hover:bg-[#ec0000] rounded-md cursor-pointer text-lg hover:py-2 sm:px-4 my-4 duration-200 transition-all ease-in-out hover:text-amber-300"
