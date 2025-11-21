@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "artist": "Kanye West",
+    "title": "Can't Tell Me Nothing",
+    "time": "4:32",
+    "file": "/songs/kanye-cant-tell-me-nothing.mp3"
+  },
+  {
+    "id": 2,
+    "artist": "Kanye West",
+    "title": "Runaway",
+    "time": "9:08",
+    "file": "/songs/kanye-runaway.mp3"
+  }
+]

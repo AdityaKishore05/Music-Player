@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "artist": "Kanye West",
+    "title": "Can't Tell Me Nothing",
+    "time": "4:32",
+    "file": "/songs/kanye-cant-tell-me-nothing.mp3"
+  },
+  {
+    "id": 2,
+    "artist": "Kanye West",
+    "title": "Runaway",
+    "time": "9:08",
+    "file": "/songs/kanye-runaway.mp3"
+  },
+  {
+    "id": 1763731396993,
+    "title": "music1",
+    "artist": "Local Upload",
+    "file": "/uploads/1763731396993_music1.mp3",
+    "time": "0:00"
+  },
+  {
+    "id": 1763747227121,
+    "title": "music2",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/54e70e05-4ffe-46f4-a1a4-ba4594fcde4f",
+    "time": "0:00"
+  }
+]
