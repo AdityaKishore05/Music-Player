@@ -4,11 +4,11 @@ import { MusicProvider } from "./MusicContext";
 
 export default function MusicLayout({
   sidebar,
-  songs,
+  children,
   player,
 }: {
   sidebar: ReactNode;
-  songs: ReactNode;
+  children: ReactNode;
   player: ReactNode;
 }) {
   return (
@@ -19,9 +19,9 @@ export default function MusicLayout({
           {sidebar || <Sidebar />}
         </div>
 
-        {/* Songs or children */}
+        {/* Main Content (Songs or Playlist) */}
         <div className="flex-1 overflow-y-auto sm:ml-64">
-          {songs}
+          {children}
         </div>
 
         {/* Player at bottom */}

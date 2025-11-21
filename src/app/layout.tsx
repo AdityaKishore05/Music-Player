@@ -1,5 +1,4 @@
 import "./globals.css";
-import { PlayerProvider } from "./music/@context/PlayerContext"; // adjust if needed
 
 export default function RootLayout({
   children,
@@ -9,7 +8,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <PlayerProvider>{children}</PlayerProvider>
+        {children}
       </body>
     </html>
   );
