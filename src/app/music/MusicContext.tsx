@@ -294,15 +294,9 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useMusic = () => {
-<<<<<<< HEAD
   const context = useContext(MusicContext);
   if (context === undefined) {
     throw new Error("useMusic must be used within a MusicProvider");
   }
   return context;
-=======
-  const ctx = useContext(MusicContext);
-  if (!ctx) throw new Error("useMusic must be used within MusicProvider");
-  return ctx;
->>>>>>> 81ef279003a6e74585b2a69c911e3ed17ffd32d5
 };
