@@ -13,7 +13,7 @@ async function getFavourites() {
     return JSON.parse(data);
 }
 
-async function saveFavourites(favourites: any[]) {
+async function saveFavourites(favourites: null | any[]) {
     await writeFile(favouritesFilePath, JSON.stringify(favourites, null, 2));
 }
 

@@ -13,7 +13,7 @@ async function getSongs() {
     return JSON.parse(data);
 }
 
-async function saveSongs(songs: any[]) {
+async function saveSongs(songs: null | any[]) {
     await writeFile(songsFilePath, JSON.stringify(songs, null, 2));
 }
 

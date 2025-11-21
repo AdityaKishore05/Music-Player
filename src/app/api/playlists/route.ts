@@ -13,7 +13,7 @@ async function getPlaylists() {
     return JSON.parse(data);
 }
 
-async function savePlaylists(playlists: any[]) {
+async function savePlaylists(playlists: null | any[]) {
     await writeFile(playlistsFilePath, JSON.stringify(playlists, null, 2));
 }
 
