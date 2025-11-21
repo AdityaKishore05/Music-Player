@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFile, writeFile } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
+import { Song } from "@/app/music/MusicContext";
 
 const songsFilePath = path.join(process.cwd(), "data", "songs.json");
 
@@ -13,7 +14,7 @@ async function getSongs() {
     return JSON.parse(data);
 }
 
-async function saveSongs(songs: null | any[]) {
+async function saveSongs(songs:  Song[] | null) {
     await writeFile(songsFilePath, JSON.stringify(songs, null, 2));
 }
 

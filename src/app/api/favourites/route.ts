@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFile, writeFile } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
+import { Song } from "@/app/music/MusicContext";
 
 const favouritesFilePath = path.join(process.cwd(), "data", "favourites.json");
 
@@ -13,7 +14,8 @@ async function getFavourites() {
     return JSON.parse(data);
 }
 
-async function saveFavourites(favourites: null | any[]) {
+
+async function saveFavourites(favourites: Song[] | null) {
     await writeFile(favouritesFilePath, JSON.stringify(favourites, null, 2));
 }
 
