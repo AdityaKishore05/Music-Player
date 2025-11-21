@@ -1,5 +1,13 @@
 "use client";
-import { Heart, Home, Library, Plus, ListMusic, Search, GripVertical } from "lucide-react";
+import {
+  Heart,
+  Home,
+  Library,
+  Plus,
+  ListMusic,
+  Search,
+  GripVertical,
+} from "lucide-react";
 import React, { useState } from "react";
 import { useMusic, Song, Playlist } from "../MusicContext";
 import Link from "next/link";
@@ -22,7 +30,15 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 // Sortable Favourite Song Item
-const SortableFavouriteSong = ({ song, playSong, favourites }: { song: Song; playSong: (song: Song, contextSongs: Song[]) => void; favourites: Song[] }) => {
+const SortableFavouriteSong = ({
+  song,
+  playSong,
+  favourites,
+}: {
+  song: Song;
+  playSong: (song: Song, contextSongs: Song[]) => void;
+  favourites: Song[];
+}) => {
   const {
     attributes,
     listeners,
@@ -94,8 +110,12 @@ const SortablePlaylistItem = ({ playlist }: { playlist: Playlist }) => {
         <ListMusic size={16} />
       </div>
       <div className="overflow-hidden min-w-0 flex-1">
-        <p className="text-white text-sm font-medium truncate">{playlist.name}</p>
-        <p className="text-white/80 text-xs truncate">{playlist.songs.length} songs</p>
+        <p className="text-white text-sm font-medium truncate">
+          {playlist.name}
+        </p>
+        <p className="text-white/80 text-xs truncate">
+          {playlist.songs.length} songs
+        </p>
       </div>
       <div
         {...attributes}
@@ -110,7 +130,14 @@ const SortablePlaylistItem = ({ playlist }: { playlist: Playlist }) => {
 };
 
 const Sidebar = () => {
-  const { favourites, playlists, createPlaylist, playSong, reorderFavourites, reorderPlaylist } = useMusic();
+  const {
+    favourites,
+    playlists,
+    createPlaylist,
+    playSong,
+    reorderFavourites,
+    reorderPlaylist,
+  } = useMusic();
   const [favSearch, setFavSearch] = useState("");
   const [libSearch, setLibSearch] = useState("");
 
@@ -171,12 +198,11 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="w-64 bg-black text-white flex flex-col h-screen fixed left-0 top-0 z-40 
-                      md:block hidden">
+    <aside className="hidden md:flex md:flex-col w-64 bg-black text-white h-screen fixed left-0 top-0 z-40 overflow-hidden">
       {/* Fixed Header Section */}
       <section className="p-4 pb-2 flex-shrink-0">
         <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
-           Music App
+          Music App
         </h2>
         <nav>
           <ul className="flex flex-col gap-2">
@@ -196,18 +222,18 @@ const Sidebar = () => {
             <Heart size={20} /> Favourites
           </h2>
           <div className="relative">
-             <Search size={14} className="absolute left-2 top-2 text-red-200" />
-             <input 
-               type="text" 
-               placeholder="Search favourites..." 
-               className="w-full bg-red-900/50 text-white text-xs rounded-md pl-7 pr-2 py-1.5 focus:outline-none focus:bg-red-900 placeholder-red-300"
-               value={favSearch}
-               onChange={(e) => setFavSearch(e.target.value)}
-             />
+            <Search size={14} className="absolute left-2 top-2 text-red-200" />
+            <input
+              type="text"
+              placeholder="Search favourites..."
+              className="w-full bg-red-900/50 text-white text-xs rounded-md pl-7 pr-2 py-1.5 focus:outline-none focus:bg-red-900 placeholder-red-300"
+              value={favSearch}
+              onChange={(e) => setFavSearch(e.target.value)}
+            />
           </div>
         </div>
-        
-        <div className="overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-red-900 scrollbar-track-transparent pr-1">
+
+        <div className="overflow-y-auto flex-1 min-h-0 scrollbar-thin scrollbar-thumb-red-900 scrollbar-track-transparent pr-1">
           {filteredFavourites.length === 0 && (
             <p className="text-white/60 text-sm px-2 italic mt-2">
               {favourites.length === 0 ? "No favourites yet" : "No matches"}
@@ -238,13 +264,13 @@ const Sidebar = () => {
       </section>
 
       {/* Library Section (Scrollable) - Increased height */}
-      <section className="flex-[1.5] flex flex-col min-h-0 px-4 pt-4 pb-4">
+      <section className="flex-[1.2] flex flex-col min-h-0 px-4 pt-4 pb-4">
         <div className="flex-shrink-0 mb-2">
           <div className="flex justify-between items-center mb-2">
             <h2 className="flex gap-3 items-center text-lg font-semibold opacity-90">
               <Library size={20} /> Your Library
             </h2>
-            <button 
+            <button
               onClick={handleCreatePlaylist}
               className="hover:bg-black/20 p-1 rounded-full transition cursor-pointer"
               title="Create Playlist"
@@ -253,21 +279,23 @@ const Sidebar = () => {
             </button>
           </div>
           <div className="relative">
-             <Search size={14} className="absolute left-2 top-2 text-red-200" />
-             <input 
-               type="text" 
-               placeholder="Search playlists..." 
-               className="w-full bg-red-900/50 text-white text-xs rounded-md pl-7 pr-2 py-1.5 focus:outline-none focus:bg-red-900 placeholder-red-300"
-               value={libSearch}
-               onChange={(e) => setLibSearch(e.target.value)}
-             />
+            <Search size={14} className="absolute left-2 top-2 text-red-200" />
+            <input
+              type="text"
+              placeholder="Search playlists..."
+              className="w-full bg-red-900/50 text-white text-xs rounded-md pl-7 pr-2 py-1.5 focus:outline-none focus:bg-red-900 placeholder-red-300"
+              value={libSearch}
+              onChange={(e) => setLibSearch(e.target.value)}
+            />
           </div>
         </div>
 
-        <div className="overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-red-900 scrollbar-track-transparent pr-1">
+        <div className="overflow-y-auto flex-1 min-h-0 scrollbar-thin scrollbar-thumb-red-900 scrollbar-track-transparent pr-1">
           {filteredPlaylists.length === 0 && (
-            <p className="text-white/60 text-sm px-2 italic mt-2">
-               {playlists.length === 0 ? "Create your first playlist" : "No matches"}
+            <p className="text-white/60 text-sm px-2 italic mt-20">
+              {playlists.length === 0
+                ? "Create your first playlist"
+                : "No matches"}
             </p>
           )}
           <DndContext
@@ -279,12 +307,9 @@ const Sidebar = () => {
               items={filteredPlaylists.map((p) => p.id)}
               strategy={verticalListSortingStrategy}
             >
-              <div className="space-y-1">
+              <div className="">
                 {filteredPlaylists.map((playlist) => (
-                  <SortablePlaylistItem
-                    key={playlist.id}
-                    playlist={playlist}
-                  />
+                  <SortablePlaylistItem key={playlist.id} playlist={playlist} />
                 ))}
               </div>
             </SortableContext>
