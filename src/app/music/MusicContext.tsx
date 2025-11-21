@@ -1,12 +1,20 @@
 "use client";
+<<<<<<< HEAD
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 export interface Song {
+=======
+import React, { createContext, useContext, useState } from "react";
+
+// Define the shape of a song
+export type Song = {
+>>>>>>> 81ef279003a6e74585b2a69c911e3ed17ffd32d5
   id: number;
   title: string;
   artist: string;
   file: string;
+<<<<<<< HEAD
   time: string;
 }
 
@@ -288,15 +296,48 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
         playPrev
       }}
     >
+=======
+  time?: string; // optional, since not all songs may have time
+};
+
+// Define the context type
+type MusicContextType = {
+  favourites: Song[];
+  toggleFavourite: (song: Song) => void;
+};
+
+// Create context with correct type
+const MusicContext = createContext<MusicContextType | null>(null);
+
+export const MusicProvider = ({ children }: { children: React.ReactNode }) => {
+  const [favourites, setFavourites] = useState<Song[]>([]);
+
+  const toggleFavourite = (song: Song) => {
+    setFavourites((prev) =>
+      prev.find((s) => s.id === song.id)
+        ? prev.filter((s) => s.id !== song.id)
+        : [...prev, song]
+    );
+  };
+
+  return (
+    <MusicContext.Provider value={{ favourites, toggleFavourite }}>
+>>>>>>> 81ef279003a6e74585b2a69c911e3ed17ffd32d5
       {children}
     </MusicContext.Provider>
   );
 };
 
 export const useMusic = () => {
+<<<<<<< HEAD
   const context = useContext(MusicContext);
   if (context === undefined) {
     throw new Error("useMusic must be used within a MusicProvider");
   }
   return context;
+=======
+  const ctx = useContext(MusicContext);
+  if (!ctx) throw new Error("useMusic must be used within MusicProvider");
+  return ctx;
+>>>>>>> 81ef279003a6e74585b2a69c911e3ed17ffd32d5
 };
