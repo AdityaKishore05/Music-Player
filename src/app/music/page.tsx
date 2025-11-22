@@ -130,7 +130,10 @@ const SortableSongItem = ({
   );
 };
 
+import { useSession, signIn, signOut } from "next-auth/react";
+
 const SongsList = () => {
+  const { data: session } = useSession();
   const {
     filteredSongs,
     favourites,
@@ -233,20 +236,44 @@ const SongsList = () => {
 
   const isFavourite = (id: number) => favourites.some((fav) => fav.id === id);
 
+  if (!session) {
+    return (
+        <div className="w-full h-screen flex flex-col items-center justify-center text-white">
+            <h2 className="text-3xl font-bold mb-6">Welcome to SonicFlow</h2>
+            <p className="text-gray-400 mb-8">Sign in to access your music library</p>
+            <button 
+                onClick={() => signIn("google")}
+                className="px-8 py-3 bg-white text-black rounded-full cursor-pointer font-bold hover:bg-gray-200 transition"
+            >
+                Sign in with Google
+            </button>
+        </div>
+    );
+  }
+
   return (
     <div className="w-full md:w-[96%] mx-auto px-2 md:px-4 pb-32 pt-6 relative">
       <div className="flex flex-col gap-4 mb-8">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
             <h2 className="text-2xl md:text-3xl text-white font-bold">Songs Collection</h2>
+            <p className="text-sm text-gray-400 hidden md:block">Logged in as {session.user?.email}</p>
           </div>
-          <button
-            onClick={() => setIsMobileSidebarOpen(true)}
-            className="md:hidden p-2 text-white hover:bg-gray-800 rounded-lg transition-colors"
-            aria-label="Open menu"
-          >
-            <Menu size={24} />
-          </button>
+          <div className="flex gap-2">
+             <button
+                onClick={() => signOut()}
+                className="px-4 py-2 bg-gray-800 cursor-pointer hover:bg-gray-700 text-white rounded-md text-sm transition"
+             >
+                Sign Out
+             </button>
+             <button
+                onClick={() => setIsMobileSidebarOpen(true)}
+                className="md:hidden p-2 text-white hover:bg-gray-800 rounded-lg transition-colors"
+                aria-label="Open menu"
+             >
+                <Menu size={24} />
+             </button>
+          </div>
         </div>
         
         <div className="flex gap-3 items-center w-full md:w-auto">

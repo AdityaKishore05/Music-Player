@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { useSession } from "next-auth/react";
 
 export interface Song {
   id: number;
@@ -47,73 +48,67 @@ interface MusicContextType {
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
 
 export const MusicProvider = ({ children }: { children: ReactNode }) => {
+  const { data: session } = useSession();
   const [songs, setSongs] = useState<Song[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [favourites, setFavourites] = useState<Song[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sessionId, setSessionId] = useState<string>("");
 
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [queue, setQueue] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Helper for UUID generation (fallback for non-secure contexts)
-  const generateUUID = () => {
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-      return crypto.randomUUID();
-    }
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-  };
-
-  // Initialize Session ID
-  useEffect(() => {
-    let sid = localStorage.getItem("music_session_id");
-    if (!sid) {
-        sid = generateUUID();
-        localStorage.setItem("music_session_id", sid);
-    }
-    setSessionId(sid);
-  }, []);
-
   // Fetch initial data
   useEffect(() => {
-    if (!sessionId) return;
+    if (!session?.user?.email) {
+        setSongs([]);
+        setIsLoading(false);
+        return;
+    }
 
     const fetchData = async () => {
       try {
-        const songsRes = await fetch("/api/songs", {
-            headers: { "x-session-id": sessionId }
-        });
+        const songsRes = await fetch("/api/songs");
 
-        const songsData = await songsRes.json();
-        const allSongs = songsData.songs || [];
-        
-        setSongs(allSongs);
-        
-        // Load favourites and playlists from local storage or mock data for now
-        // In a real app, these would also be API calls
-        const storedFavs = localStorage.getItem("favourites");
-        if (storedFavs) {
-            const parsedFavs: Song[] = JSON.parse(storedFavs);
-            // Filter out any songs that might have been deleted from the session
-            const validFavs = parsedFavs.filter(fav => allSongs.some((s: Song) => s.id === fav.id));
-            setFavourites(validFavs);
+        if (songsRes.ok) {
+            const songsData = await songsRes.json();
+            const allSongs = songsData.songs || [];
+            setSongs(allSongs);
+
+            // Load favourites and playlists from API
+            const userEmail = session?.user?.email;
+            if (userEmail) {
+                fetch("/api/favourites")
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.favourites) {
+                             // Filter favourites to ensure they exist in allSongs (optional, but good for consistency)
+                             // Actually, if we trust the server, we can just set them. 
+                             // But if songs were deleted from songs.json but still in favourites.json, we might want to filter.
+                             // For now, let's trust the server or filter if needed.
+                             // Let's filter to be safe, similar to before.
+                             const validFavs = data.favourites.filter((fav: Song) => allSongs.some((s: Song) => s.id === fav.id));
+                             setFavourites(validFavs);
+                        }
+                    })
+                    .catch(err => console.error("Failed to load favourites", err));
+
+                fetch("/api/playlists")
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.playlists) {
+                            // Filter songs in playlists
+                            const cleanedPlaylists = data.playlists.map((pl: Playlist) => ({
+                                ...pl,
+                                songs: pl.songs.filter((s: Song) => allSongs.some((as: Song) => as.id === s.id))
+                            }));
+                            setPlaylists(cleanedPlaylists);
+                        }
+                    })
+                    .catch(err => console.error("Failed to load playlists", err));
+            }
         }
-
-        const storedPlaylists = localStorage.getItem("playlists");
-        if (storedPlaylists) {
-            const parsedPlaylists: Playlist[] = JSON.parse(storedPlaylists);
-            const cleanedPlaylists = parsedPlaylists.map(pl => ({
-                ...pl,
-                songs: pl.songs.filter(s => allSongs.some((as: Song) => as.id === s.id))
-            }));
-            setPlaylists(cleanedPlaylists);
-        }
-
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -122,7 +117,7 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
     };
 
     fetchData();
-  }, [sessionId]);
+  }, [session]);
 
   // Filter songs based on search query
   const filteredSongs = songs.filter(
@@ -132,12 +127,19 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const toggleFavourite = (song: Song) => {
+    if (!session?.user?.email) return;
     setFavourites((prev) => {
       const isFav = prev.some((s) => s.id === song.id);
       const newFavs = isFav
         ? prev.filter((s) => s.id !== song.id)
         : [...prev, song];
-      localStorage.setItem("favourites", JSON.stringify(newFavs));
+      
+      fetch("/api/favourites", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ favourites: newFavs }),
+      }).catch(err => console.error("Failed to save favourites", err));
+
       return newFavs;
     });
   };
@@ -176,12 +178,11 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
   const reorderSongs = (newSongs: Song[]) => {
     setSongs(newSongs);
     // Ideally save order to backend
-    if (sessionId) {
+    if (session?.user?.email) {
         fetch("/api/songs", {
             method: "PUT",
             headers: { 
-                "Content-Type": "application/json",
-                "x-session-id": sessionId
+                "Content-Type": "application/json"
             },
             body: JSON.stringify({ songs: newSongs }),
         }).catch(err => console.error("Failed to save order", err));
@@ -189,6 +190,7 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addToPlaylist = (playlistId: string, song: Song) => {
+    if (!session?.user?.email) return;
     setPlaylists((prev) => {
       const newPlaylists = prev.map((pl) => {
         if (pl.id === playlistId) {
@@ -197,12 +199,19 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
         }
         return pl;
       });
-      localStorage.setItem("playlists", JSON.stringify(newPlaylists));
+      
+      fetch("/api/playlists", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playlists: newPlaylists }),
+      }).catch(err => console.error("Failed to save playlists", err));
+
       return newPlaylists;
     });
   };
 
   const createPlaylist = (name: string) => {
+    if (!session?.user?.email) return;
     const newPlaylist: Playlist = {
       id: Date.now().toString(),
       name,
@@ -210,21 +219,34 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
     };
     setPlaylists((prev) => {
       const newPlaylists = [...prev, newPlaylist];
-      localStorage.setItem("playlists", JSON.stringify(newPlaylists));
+      
+      fetch("/api/playlists", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playlists: newPlaylists }),
+      }).catch(err => console.error("Failed to save playlists", err));
+
       return newPlaylists;
     });
   };
 
   const deletePlaylist = (id: string) => {
+    if (!session?.user?.email) return;
     setPlaylists((prev) => {
       const newPlaylists = prev.filter((pl) => pl.id !== id);
-      localStorage.setItem("playlists", JSON.stringify(newPlaylists));
+      
+      fetch("/api/playlists", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playlists: newPlaylists }),
+      }).catch(err => console.error("Failed to save playlists", err));
+
       return newPlaylists;
     });
   };
 
   const uploadSongs = async (files: File[]) => {
-    if (!sessionId) return;
+    if (!session?.user?.email) return;
     try {
         const newSongs: Song[] = [];
 
@@ -235,7 +257,6 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
 
             const uploadRes = await fetch("/api/upload", {
                 method: "POST",
-                headers: { "x-session-id": sessionId },
                 body: formData,
             });
 
@@ -276,8 +297,7 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
              await fetch("/api/songs", {
                 method: "POST",
                 headers: { 
-                    "Content-Type": "application/json",
-                    "x-session-id": sessionId
+                    "Content-Type": "application/json"
                 },
                 body: JSON.stringify({ song }),
             });
@@ -290,7 +310,7 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteSong = async (id: number) => {
-    if (!sessionId) return;
+    if (!session?.user?.email) return;
     // Optimistic update
     setSongs((prev) => prev.filter((s) => s.id !== id));
     
@@ -305,8 +325,7 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
       await fetch("/api/songs", {
         method: "DELETE",
         headers: { 
-            "Content-Type": "application/json",
-            "x-session-id": sessionId
+            "Content-Type": "application/json"
         },
         body: JSON.stringify({ songId: id }),
       });
@@ -317,6 +336,7 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const removeFromPlaylist = (playlistId: string, songId: number) => {
+      if (!session?.user?.email) return;
       setPlaylists(prev => {
           const newPlaylists = prev.map(pl => {
               if (pl.id === playlistId) {
@@ -324,12 +344,19 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
               }
               return pl;
           });
-          localStorage.setItem("playlists", JSON.stringify(newPlaylists));
+          
+          fetch("/api/playlists", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ playlists: newPlaylists }),
+          }).catch(err => console.error("Failed to save playlists", err));
+
           return newPlaylists;
       });
   };
 
   const reorderPlaylist = (playlistId: string, newSongs: Song[]) => {
+      if (!session?.user?.email) return;
       setPlaylists(prev => {
           const newPlaylists = prev.map(pl => {
               if (pl.id === playlistId) {
@@ -337,12 +364,19 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
               }
               return pl;
           });
-          localStorage.setItem("playlists", JSON.stringify(newPlaylists));
+          
+          fetch("/api/playlists", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ playlists: newPlaylists }),
+          }).catch(err => console.error("Failed to save playlists", err));
+
           return newPlaylists;
       });
   };
 
   const updatePlaylistImage = (playlistId: string, image: string) => {
+      if (!session?.user?.email) return;
       setPlaylists(prev => {
           const newPlaylists = prev.map(pl => {
               if (pl.id === playlistId) {
@@ -350,7 +384,13 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
               }
               return pl;
           });
-          localStorage.setItem("playlists", JSON.stringify(newPlaylists));
+          
+          fetch("/api/playlists", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ playlists: newPlaylists }),
+          }).catch(err => console.error("Failed to save playlists", err));
+
           return newPlaylists;
       });
   };
@@ -376,8 +416,14 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
         reorderPlaylist,
         updatePlaylistImage,
         reorderFavourites: (newFavourites: Song[]) => {
+            if (!session?.user?.email) return;
             setFavourites(newFavourites);
-            localStorage.setItem("favourites", JSON.stringify(newFavourites));
+            
+            fetch("/api/favourites", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ favourites: newFavourites }),
+            }).catch(err => console.error("Failed to save favourites", err));
         },
         currentSong,
         isPlaying,
