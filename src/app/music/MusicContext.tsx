@@ -18,6 +18,12 @@ export interface Playlist {
   image?: string;
 }
 
+interface CloudinaryResponse {
+  secure_url: string;
+  duration?: number;
+  [key: string]: unknown;
+}
+
 interface MusicContextType {
   songs: Song[];
   filteredSongs: Song[];
@@ -257,7 +263,7 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
              formData.append("upload_preset", "music-player"); 
              formData.append("cloud_name", "dlq3akqq4"); 
 
-             const data = await new Promise<any>((resolve, reject) => {
+             const data = await new Promise<CloudinaryResponse>((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
                 xhr.open("POST", "https://api.cloudinary.com/v1_1/dlq3akqq4/auto/upload");
 
