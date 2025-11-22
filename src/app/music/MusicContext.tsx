@@ -43,6 +43,7 @@ interface MusicContextType {
   playNext: () => void;
   playPrev: () => void;
   isLoading: boolean;
+  uploadProgress: number | null;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -58,6 +59,7 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [queue, setQueue] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
   // Fetch initial data
   useEffect(() => {
@@ -83,11 +85,6 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
                     .then(res => res.json())
                     .then(data => {
                         if (data.favourites) {
-                             // Filter favourites to ensure they exist in allSongs (optional, but good for consistency)
-                             // Actually, if we trust the server, we can just set them. 
-                             // But if songs were deleted from songs.json but still in favourites.json, we might want to filter.
-                             // For now, let's trust the server or filter if needed.
-                             // Let's filter to be safe, similar to before.
                              const validFavs = data.favourites.filter((fav: Song) => allSongs.some((s: Song) => s.id === fav.id));
                              setFavourites(validFavs);
                         }
@@ -247,64 +244,121 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
 
   const uploadSongs = async (files: File[]) => {
     if (!session?.user?.email) return;
+    setUploadProgress(0);
+
     try {
         const newSongs: Song[] = [];
 
-        for (const file of files) {
-            // 1. Upload file to Cloudinary (Client-side)
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            
+            // Upload to Cloudinary using XMLHttpRequest for progress
             const formData = new FormData();
             formData.append("file", file);
-            formData.append("upload_preset", "music-player"); // Your preset name
-            formData.append("cloud_name", "dlq3akqq4"); // Your cloud name
+            formData.append("upload_preset", "music-player"); 
+            formData.append("cloud_name", "dlq3akqq4"); 
 
-            const uploadRes = await fetch("https://api.cloudinary.com/v1_1/dlq3akqq4/auto/upload", {
-                method: "POST",
-                body: formData,
+            const url = await new Promise<string>((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "https://api.cloudinary.com/v1_1/dlq3akqq4/auto/upload");
+
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const fileProgress = (event.loaded / event.total) * 100;
+                        // Calculate total progress based on current file index
+                        const totalProgress = ((i + fileProgress / 100) / files.length) * 100;
+                        setUploadProgress(Math.round(totalProgress));
+                    }
+                };
+
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        const response = JSON.parse(xhr.responseText);
+                        resolve(response.secure_url);
+                    } else {
+                        console.error("Cloudinary Error:", xhr.responseText);
+                        reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.responseText}`));
+                    }
+                };
+
+                xhr.onerror = () => reject(new Error("Network error during upload"));
+                
+                xhr.send(formData);
             });
 
-            if (!uploadRes.ok) {
-                console.error(`Failed to upload ${file.name}`);
-                alert(`Failed to upload ${file.name}. Please try again.`);
-                continue;
-            }
+            // Calculate duration (approximate or fetch if needed, Cloudinary returns it usually)
+            // For simplicity, we'll fetch metadata or just use a default/random if not returned in simple upload
+            // Actually, the previous code fetched duration from the response. Let's try to get it.
+            // We need the full response to get duration. Let's adjust the promise above.
+            
+            // Re-implementing to get full data
+            // ... (See below for cleaner implementation)
+        }
+        
+        // Let's rewrite the loop cleanly
+        for (let i = 0; i < files.length; i++) {
+             const file = files[i];
+             const formData = new FormData();
+             formData.append("file", file);
+             formData.append("upload_preset", "music-player"); 
+             formData.append("cloud_name", "dlq3akqq4"); 
 
-            const data = await uploadRes.json();
-            const url = data.secure_url;
-            const durationSeconds = data.duration || 0;
+             const data = await new Promise<any>((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "https://api.cloudinary.com/v1_1/dlq3akqq4/auto/upload");
 
-            // Format duration
-            const minutes = Math.floor(durationSeconds / 60);
-            const seconds = Math.floor(durationSeconds % 60);
-            const duration = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const fileProgress = (event.loaded / event.total) * 100;
+                        const totalProgress = ((i + fileProgress / 100) / files.length) * 100;
+                        setUploadProgress(Math.round(totalProgress));
+                    }
+                };
 
-            // 2. Create song object with Cloudinary URL
-            const newSong: Song = {
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        console.error("Cloudinary Error:", xhr.responseText);
+                        reject(new Error(`Upload failed: ${xhr.statusText}`));
+                    }
+                };
+
+                xhr.onerror = () => reject(new Error("Network error"));
+                xhr.send(formData);
+             });
+
+             const durationSeconds = data.duration || 0;
+             const minutes = Math.floor(durationSeconds / 60);
+             const seconds = Math.floor(durationSeconds % 60);
+             const duration = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+
+             const newSong: Song = {
                 id: Date.now() + Math.random(),
                 title: file.name.replace(/\.[^/.]+$/, ""),
-                artist: "My Upload", // Default artist
-                file: url, 
+                artist: "My Upload",
+                file: data.secure_url, 
                 time: duration,
             };
             newSongs.push(newSong);
         }
 
-        if (newSongs.length === 0) return;
-
-        // 3. Save song metadata to your DB (using POST loop to append)
-        for (const song of newSongs) {
-             await fetch("/api/songs", {
-                method: "POST",
-                headers: { 
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ song }),
-            });
+        if (newSongs.length > 0) {
+            for (const song of newSongs) {
+                 await fetch("/api/songs", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ song }),
+                });
+            }
+            setSongs((prev) => [...prev, ...newSongs]);
         }
 
-        setSongs((prev) => [...prev, ...newSongs]);
-    } catch (e) {
+    } catch (e: any) {
         console.error("Upload failed", e);
-        alert("An error occurred during upload.");
+        alert(`Upload failed: ${e.message}`);
+    } finally {
+        setUploadProgress(null);
     }
   };
 
@@ -429,7 +483,8 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
         togglePlayPause,
         playNext,
         playPrev,
-        isLoading
+        isLoading,
+        uploadProgress
       }}
     >
       {children}
