@@ -251,11 +251,13 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
         const newSongs: Song[] = [];
 
         for (const file of files) {
-            // 1. Upload file to server
+            // 1. Upload file to Cloudinary (Client-side)
             const formData = new FormData();
             formData.append("file", file);
+            formData.append("upload_preset", "music-player"); // Your preset name
+            formData.append("cloud_name", "dlq3akqq4"); // Your cloud name
 
-            const uploadRes = await fetch("/api/upload", {
+            const uploadRes = await fetch("https://api.cloudinary.com/v1_1/dlq3akqq4/auto/upload", {
                 method: "POST",
                 body: formData,
             });
@@ -266,24 +268,20 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
                 continue;
             }
 
-            const { url } = await uploadRes.json();
+            const data = await uploadRes.json();
+            const url = data.secure_url;
+            const durationSeconds = data.duration || 0;
 
-            // Calculate duration
-            const duration = await new Promise<string>((resolve) => {
-                const audio = new Audio(url);
-                audio.onloadedmetadata = () => {
-                    const minutes = Math.floor(audio.duration / 60);
-                    const seconds = Math.floor(audio.duration % 60);
-                    resolve(`${minutes}:${seconds.toString().padStart(2, "0")}`);
-                };
-                audio.onerror = () => resolve("0:00");
-            });
+            // Format duration
+            const minutes = Math.floor(durationSeconds / 60);
+            const seconds = Math.floor(durationSeconds % 60);
+            const duration = `${minutes}:${seconds.toString().padStart(2, "0")}`;
 
-            // 2. Create song object with persistent URL
+            // 2. Create song object with Cloudinary URL
             const newSong: Song = {
                 id: Date.now() + Math.random(),
                 title: file.name.replace(/\.[^/.]+$/, ""),
-                artist: "Local Upload",
+                artist: "My Upload", // Default artist
                 file: url, 
                 time: duration,
             };
@@ -292,7 +290,7 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
 
         if (newSongs.length === 0) return;
 
-        // 3. Save song metadata (using POST loop to append)
+        // 3. Save song metadata to your DB (using POST loop to append)
         for (const song of newSongs) {
              await fetch("/api/songs", {
                 method: "POST",
@@ -306,6 +304,7 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
         setSongs((prev) => [...prev, ...newSongs]);
     } catch (e) {
         console.error("Upload failed", e);
+        alert("An error occurred during upload.");
     }
   };
 
