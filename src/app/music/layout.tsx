@@ -15,7 +15,7 @@ export default function MusicLayout({
     <MusicProvider>
       <div className="flex bg-gray-900 h-screen overflow-hidden">
         {/* Sidebar slot */}
-        <div className="fixed top-0 left-0 h-full w-64">
+        <div className="hidden md:block fixed top-0 left-0 h-full w-64">
           {sidebar || <Sidebar />}
         </div>
 

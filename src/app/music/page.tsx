@@ -57,7 +57,7 @@ const SortableSongItem = ({
     <li
       ref={setNodeRef}
       style={style}
-      className="flex justify-between items-center bg-gray-800/50 hover:bg-black/50 py-1 rounded-md text-lg hover:py-2 sm:px-4 my-2 duration-200 transition-all ease-in-out group border border-transparent hover:border-red-500 relative"
+      className="flex justify-between items-center bg-white dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-black/50 py-1 rounded-md text-lg hover:py-2 sm:px-4 my-2 duration-200 transition-all ease-in-out group border border-transparent hover:border-red-500 relative shadow-sm dark:shadow-none"
     >
       {/* Drag Handle */}
       <div
@@ -78,10 +78,10 @@ const SortableSongItem = ({
           className="h-14 w-14 rounded-md flex-shrink-0 object-cover hidden md:block"
         />
         <div className="min-w-0 flex-1">
-          <p className="text-sm md:text-lg font-semibold text-white truncate">
+          <p className="text-sm md:text-lg font-semibold text-gray-900 dark:text-white truncate">
             {song.title}
           </p>
-          <p className="text-xs md:text-sm text-gray-400 group-hover:text-gray-200 truncate">
+          <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 truncate">
             {song.artist}
           </p>
         </div>
@@ -112,7 +112,7 @@ const SortableSongItem = ({
             <Heart className="w-[18px] h-[18px] md:w-5 md:h-5" />
           )}
         </button>
-        <span className="hidden sm:inline w-10 md:w-12 text-right text-xs md:text-sm">{song.time}</span>
+        <span className="hidden sm:inline w-10 md:w-12 text-right text-xs md:text-sm text-gray-600 dark:text-gray-400">{song.time}</span>
         <button
             onClick={(e) => {
               e.stopPropagation();
@@ -143,7 +143,7 @@ const SongsList = () => {
     playlists,
     addToPlaylist,
     createPlaylist,
-    uploadSong,
+    uploadSongs,
     deleteSong,
   } = useMusic();
 
@@ -153,9 +153,9 @@ const SongsList = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      await uploadSong(file);
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      await uploadSongs(Array.from(files));
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -237,7 +237,9 @@ const SongsList = () => {
     <div className="w-full md:w-[96%] mx-auto px-2 md:px-4 pb-32 pt-6 relative">
       <div className="flex flex-col gap-4 mb-8">
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl md:text-3xl text-white font-bold">Songs Collection</h2>
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl md:text-3xl text-white font-bold">Songs Collection</h2>
+          </div>
           <button
             onClick={() => setIsMobileSidebarOpen(true)}
             className="md:hidden p-2 text-white hover:bg-gray-800 rounded-lg transition-colors"
@@ -255,7 +257,7 @@ const SongsList = () => {
             </div>
             <input
               type="text"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-700 rounded-full leading-5 bg-gray-800 text-gray-300 placeholder-gray-400 focus:outline-none focus:bg-gray-900 focus:border-red-500 focus:ring-1 focus:ring-red-500 sm:text-sm transition-colors"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-full leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:bg-white dark:focus:bg-gray-900 focus:border-red-500 focus:ring-1 focus:ring-red-500 sm:text-sm transition-colors shadow-sm"
               placeholder="Search songs or artists..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -275,6 +277,7 @@ const SongsList = () => {
             ref={fileInputRef}
             type="file"
             accept="audio/*"
+            multiple
             onChange={handleFileUpload}
             className="hidden"
           />

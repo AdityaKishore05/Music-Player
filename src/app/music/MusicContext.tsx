@@ -29,7 +29,8 @@ interface MusicContextType {
   reorderSongs: (newSongs: Song[]) => void;
   addToPlaylist: (playlistId: string, song: Song) => void;
   createPlaylist: (name: string) => void;
-  uploadSong: (file: File) => Promise<void>;
+  deletePlaylist: (id: string) => void;
+  uploadSongs: (files: File[]) => Promise<void>;
   deleteSong: (id: number) => void;
   removeFromPlaylist: (playlistId: string, songId: number) => void;
   reorderPlaylist: (playlistId: string, newSongs: Song[]) => void;
@@ -40,6 +41,7 @@ interface MusicContextType {
   togglePlayPause: () => void;
   playNext: () => void;
   playPrev: () => void;
+  isLoading: boolean;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -54,6 +56,7 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [queue, setQueue] = useState<Song[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch initial data
   useEffect(() => {
@@ -71,18 +74,34 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
         const deletedIds = deletedData.deletedSongs || [];
 
         setDeletedSongIds(deletedIds);
-        setSongs(allSongs.filter((s: Song) => !deletedIds.includes(s.id)));
+        
+        // Deduplicate songs based on ID
+        const uniqueSongs = Array.from(new Map(allSongs.map((s: Song) => [s.id, s])).values()) as Song[];
+        
+        setSongs(uniqueSongs.filter((s) => !deletedIds.includes(s.id)));
         
         // Load favourites and playlists from local storage or mock data for now
         // In a real app, these would also be API calls
         const storedFavs = localStorage.getItem("favourites");
-        if (storedFavs) setFavourites(JSON.parse(storedFavs));
+        if (storedFavs) {
+            const parsedFavs: Song[] = JSON.parse(storedFavs);
+            setFavourites(parsedFavs.filter((s) => !deletedIds.includes(s.id)));
+        }
 
         const storedPlaylists = localStorage.getItem("playlists");
-        if (storedPlaylists) setPlaylists(JSON.parse(storedPlaylists));
+        if (storedPlaylists) {
+            const parsedPlaylists: Playlist[] = JSON.parse(storedPlaylists);
+            const cleanedPlaylists = parsedPlaylists.map(pl => ({
+                ...pl,
+                songs: pl.songs.filter(s => !deletedIds.includes(s.id))
+            }));
+            setPlaylists(cleanedPlaylists);
+        }
 
       } catch (error) {
         console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -170,33 +189,69 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const uploadSong = async (file: File) => {
-    // Mock upload - in real app, send to API
-    const formData = new FormData();
-    // We need to construct the song object to send to API
-    // For now, we'll just simulate it on client and assume API handles file storage
-    // But wait, the API route expects { song: ... }
-    
-    // Since we can't easily do file upload logic here without a proper backend upload handler that saves files,
-    // I will implement a basic version that assumes the file is handled.
-    // For this specific task, the user asked to fix deletion. I will try to keep upload simple.
-    
-    // Let's assume we send metadata to /api/songs
-    const newSong: Song = {
-      id: Date.now(),
-      title: file.name.replace(/\.[^/.]+$/, ""),
-      artist: "Local Upload",
-      file: URL.createObjectURL(file), // Temporary blob URL
-      time: "0:00", // Placeholder
-    };
+  const deletePlaylist = (id: string) => {
+    setPlaylists((prev) => {
+      const newPlaylists = prev.filter((pl) => pl.id !== id);
+      localStorage.setItem("playlists", JSON.stringify(newPlaylists));
+      return newPlaylists;
+    });
+  };
 
+  const uploadSongs = async (files: File[]) => {
     try {
-        await fetch("/api/songs", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ song: newSong }),
-        });
-        setSongs((prev) => [...prev, newSong]);
+        const newSongs: Song[] = [];
+
+        for (const file of files) {
+            // 1. Upload file to server
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const uploadRes = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!uploadRes.ok) {
+                console.error(`Failed to upload ${file.name}`);
+                continue;
+            }
+
+            const { url } = await uploadRes.json();
+
+            // Calculate duration
+            const duration = await new Promise<string>((resolve) => {
+                const audio = new Audio(url);
+                audio.onloadedmetadata = () => {
+                    const minutes = Math.floor(audio.duration / 60);
+                    const seconds = Math.floor(audio.duration % 60);
+                    resolve(`${minutes}:${seconds.toString().padStart(2, "0")}`);
+                };
+                audio.onerror = () => resolve("0:00");
+            });
+
+            // 2. Create song object with persistent URL
+            const newSong: Song = {
+                id: Date.now() + Math.random(),
+                title: file.name.replace(/\.[^/.]+$/, ""),
+                artist: "Local Upload",
+                file: url, 
+                time: duration,
+            };
+            newSongs.push(newSong);
+        }
+
+        if (newSongs.length === 0) return;
+
+        // 3. Save song metadata (using POST loop to append)
+        for (const song of newSongs) {
+             await fetch("/api/songs", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ song }),
+            });
+        }
+
+        setSongs((prev) => [...prev, ...newSongs]);
     } catch (e) {
         console.error("Upload failed", e);
     }
@@ -272,7 +327,8 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
         reorderSongs,
         addToPlaylist,
         createPlaylist,
-        uploadSong,
+        deletePlaylist,
+        uploadSongs,
         deleteSong,
         removeFromPlaylist,
         reorderPlaylist,
@@ -285,7 +341,8 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
         isPlaying,
         togglePlayPause,
         playNext,
-        playPrev
+        playPrev,
+        isLoading
       }}
     >
       {children}

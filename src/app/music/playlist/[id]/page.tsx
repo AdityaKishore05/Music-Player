@@ -2,7 +2,7 @@
 
 import React, { useRef } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation"; //  <-- FIX
+import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Play,
@@ -65,77 +65,77 @@ const SortablePlaylistSongItem = ({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const isFav = favourites.some((f) => f.id === song.id);
+
   return (
     <li
       ref={setNodeRef}
       style={style}
-      className="flex justify-between items-center hover:bg-white/10 rounded-md p-2 group transition-colors bg-gray-900/40 mb-1"
+      className="flex justify-between items-center bg-gray-800/50 hover:bg-black/50 py-1 rounded-md text-lg hover:py-2 sm:px-4 my-2 duration-200 transition-all ease-in-out group border border-transparent hover:border-red-500 relative"
     >
-      <div className="flex items-center gap-4 flex-1">
-        {/* Drag Handle */}
-        <div
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing text-gray-500 hover:text-white"
-        >
-          <GripVertical size={16} />
-        </div>
+      {/* Drag Handle */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing p-2 text-gray-500 hover:text-white mr-2"
+      >
+        <GripVertical size={20} />
+      </div>
 
-        <div
-          className="flex items-center gap-4 flex-1 cursor-pointer"
-          onClick={() => playSong(song, playlistSongs)}
-        >
-          <span className="text-gray-400 w-6 text-center group-hover:hidden">
-            {index + 1}
-          </span>
-          <Play
-            size={16}
-            className="text-white w-6 hidden group-hover:block"
-            fill="currentColor"
-          />
+      <div
+        onClick={() => playSong(song, playlistSongs)}
+        className="flex items-center gap-2 md:gap-6 flex-1 cursor-pointer min-w-0"
+      >
+        <span className="text-gray-400 w-6 text-center group-hover:hidden text-sm">
+          {index + 1}
+        </span>
+        <Play
+          size={16}
+          className="text-white w-6 hidden group-hover:block"
+          fill="currentColor"
+        />
 
-          <img
-            src="https://picfiles.alphacoders.com/462/462928.jpg"
-            alt={song.title}
-            className="h-10 w-10 rounded-md object-cover"
-          />
-          <div>
-            <p className="text-white font-medium">{song.title}</p>
-            <p className="text-sm text-gray-400">{song.artist}</p>
-          </div>
+        <img
+          src="https://picfiles.alphacoders.com/462/462928.jpg"
+          alt={song.title}
+          className="h-14 w-14 rounded-md flex-shrink-0 object-cover hidden md:block"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm md:text-lg font-semibold text-white truncate">
+            {song.title}
+          </p>
+          <p className="text-xs md:text-sm text-gray-400 group-hover:text-gray-200 truncate">
+            {song.artist}
+          </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <span className="text-sm text-gray-400">{song.time}</span>
+      <div className="text-md font-medium text-white flex gap-1 md:gap-3 items-center flex-shrink-0">
         <button
           onClick={(e) => {
             e.stopPropagation();
             toggleFavourite(song);
           }}
-          className="text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-          title={
-            favourites.find((f) => f.id === song.id)
-              ? "Remove from favourites"
-              : "Add to favourites"
-          }
+          className="hover:text-amber-300 p-1 md:p-2 cursor-pointer"
         >
-          <Heart
-            size={18}
-            fill={
-              favourites.find((f) => f.id === song.id) ? "currentColor" : "none"
-            }
-          />
+          {isFav ? (
+            <Heart fill="currentColor" className="text-amber-300 w-[18px] h-[18px] md:w-5 md:h-5" />
+          ) : (
+            <Heart className="w-[18px] h-[18px] md:w-5 md:h-5" />
+          )}
         </button>
+        <span className="hidden sm:inline w-10 md:w-12 text-right text-xs md:text-sm">{song.time}</span>
         <button
           onClick={(e) => {
             e.stopPropagation();
-            removeFromPlaylist(playlistId, song.id);
+            if (confirm(`Remove "${song.title}" from playlist?`)) {
+                removeFromPlaylist(playlistId, song.id);
+            }
           }}
-          className="text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-          title="Remove from playlist"
+          className="hover:text-red-500 p-1 md:p-2 text-red-400 hover:bg-black/20 rounded-full transition cursor-pointer"
+          title="Remove from Playlist"
         >
-          <Trash2 size={18} />
+          <Trash2 size={18} className="md:w-5 md:h-5" />
         </button>
       </div>
     </li>
@@ -152,13 +152,20 @@ const PlaylistPage = ({ params }: { params: Promise<{ id: string }> }) => {
     updatePlaylistImage,
     toggleFavourite,
     favourites,
+    isLoading,
+    deletePlaylist,
   } = useMusic();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const playlist = playlists.find((p) => p.id === id);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -184,16 +191,36 @@ const PlaylistPage = ({ params }: { params: Promise<{ id: string }> }) => {
     fileInputRef.current?.click();
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && playlist) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        updatePlaylistImage(playlist.id, reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) throw new Error("Upload failed");
+
+        const { url } = await res.json();
+        updatePlaylistImage(playlist.id, url);
+      } catch (error) {
+        console.error("Failed to upload image:", error);
+        alert("Failed to upload image");
+      }
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="text-white p-6 flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+      </div>
+    );
+  }
 
   if (!playlist) {
     return (
@@ -234,7 +261,6 @@ const PlaylistPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 {playlist.name.charAt(0)}
               </span>
             )}
-
             {/* Hover Overlay */}
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               <Camera size={32} className="text-white" />
@@ -242,9 +268,9 @@ const PlaylistPage = ({ params }: { params: Promise<{ id: string }> }) => {
             <input
               type="file"
               ref={fileInputRef}
-              className="hidden"
               accept="image/*"
               onChange={handleImageChange}
+              className="hidden"
             />
           </div>
           <div>
@@ -256,10 +282,22 @@ const PlaylistPage = ({ params }: { params: Promise<{ id: string }> }) => {
             </h1>
             <p className="text-gray-300">{playlist.songs.length} songs</p>
           </div>
+          <button
+            onClick={() => {
+                if (confirm(`Are you sure you want to delete playlist "${playlist.name}"?`)) {
+                    deletePlaylist(playlist.id);
+                    router.push("/music");
+                }
+            }}
+            className="ml-auto p-3 bg-red-600 hover:bg-red-700 cursor-pointer text-white rounded-full transition-colors shadow-lg mb-2"
+            title="Delete Playlist"
+          >
+            <Trash2 size={24} />
+          </button>
         </div>
       </div>
 
-      <div className="bg-gray-900/50 rounded-lg p-4">
+      <div className="bg-gray-900/50 rounded-lg">
         {playlist.songs.length === 0 ? (
           <div className="text-center py-10 text-gray-500">
             <p>This playlist is empty.</p>

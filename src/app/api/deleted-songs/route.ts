@@ -18,6 +18,10 @@ async function getDeletedSongs() {
 }
 
 async function saveDeletedSongs(deletedSongs: number[]) {
+    const dir = path.dirname(deletedSongsFilePath);
+    if (!existsSync(dir)) {
+        await import("fs/promises").then(fs => fs.mkdir(dir, { recursive: true }));
+    }
     await writeFile(deletedSongsFilePath, JSON.stringify(deletedSongs, null, 2));
 }
 

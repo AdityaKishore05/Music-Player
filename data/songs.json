@@ -14,24 +14,255 @@
     "file": "/songs/kanye-runaway.mp3"
   },
   {
-    "id": 1763731396993,
-    "title": "music1",
+    "id": 1763815904734,
+    "title": "07. Us And Them",
     "artist": "Local Upload",
-    "file": "/uploads/1763731396993_music1.mp3",
+    "file": "blob:http://localhost:3000/289d8832-a1aa-4aa0-a70a-c9bec2a0fa39",
     "time": "0:00"
   },
   {
-    "id": 1763747227121,
-    "title": "music2",
+    "id": 1763816224971.6562,
+    "title": "07. Us And Them",
     "artist": "Local Upload",
-    "file": "blob:http://localhost:3000/54e70e05-4ffe-46f4-a1a4-ba4594fcde4f",
+    "file": "blob:http://localhost:3000/ef01c0c4-a554-4538-be32-7845e858c67e",
     "time": "0:00"
   },
   {
-    "id": 1763748373857,
-    "title": "202510011748_mix",
+    "id": 1763816224971.7136,
+    "title": "04. Time",
     "artist": "Local Upload",
-    "file": "blob:http://localhost:3000/f073e562-6765-4bb0-9921-b28e177322ee",
+    "file": "blob:http://localhost:3000/1524ca1c-6836-4879-b540-58c1aac9d7b2",
     "time": "0:00"
+  },
+  {
+    "id": 1763816224971.2007,
+    "title": "10. Eclipse",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/0477625d-4668-4572-8363-953bfb8885a4",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816224971.1458,
+    "title": "05. The Great Gig In The Sky",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/a9e52f0a-a46e-4442-ada8-4890efd46ec7",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816224971.1787,
+    "title": "09. Brain Damage",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/64321b45-b7a5-4d9e-91a7-7eb81725e2d4",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816224971.451,
+    "title": "01. Speak To Me",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/0cd7eaf3-2d84-4fb7-875d-ae77a3fb504c",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816224971.1084,
+    "title": "03. On The Run",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/1b2204d7-51e9-485a-b6a8-11d3281cbe78",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816224972.4333,
+    "title": "02. Breathe In The Air",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/3ba50c2b-e665-46c0-b7d9-ddbfa7167e09",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816224972.5005,
+    "title": "06. Money",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/2c292c3d-3f84-4c81-871b-96b199090b9b",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816224972.136,
+    "title": "08. Any Colour You Like",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/7674bcdb-3798-4c59-a7dc-df89253a6cc4",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816224971.6562,
+    "title": "07. Us And Them",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/ef01c0c4-a554-4538-be32-7845e858c67e",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816224971.7136,
+    "title": "04. Time",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/1524ca1c-6836-4879-b540-58c1aac9d7b2",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816224971.2007,
+    "title": "10. Eclipse",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/0477625d-4668-4572-8363-953bfb8885a4",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816224971.1458,
+    "title": "05. The Great Gig In The Sky",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/a9e52f0a-a46e-4442-ada8-4890efd46ec7",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816224971.1787,
+    "title": "09. Brain Damage",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/64321b45-b7a5-4d9e-91a7-7eb81725e2d4",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816224971.451,
+    "title": "01. Speak To Me",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/0cd7eaf3-2d84-4fb7-875d-ae77a3fb504c",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816224971.1084,
+    "title": "03. On The Run",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/1b2204d7-51e9-485a-b6a8-11d3281cbe78",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816224972.4333,
+    "title": "02. Breathe In The Air",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/3ba50c2b-e665-46c0-b7d9-ddbfa7167e09",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816224972.5005,
+    "title": "06. Money",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/2c292c3d-3f84-4c81-871b-96b199090b9b",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816224972.136,
+    "title": "08. Any Colour You Like",
+    "artist": "Local Upload",
+    "file": "blob:http://localhost:3000/7674bcdb-3798-4c59-a7dc-df89253a6cc4",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816588342.8315,
+    "title": "01. Speak To Me",
+    "artist": "Local Upload",
+    "file": "/uploads/01. Speak To Me-1763816588334-224577146.mp3",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816628085.073,
+    "title": "02. Breathe In The Air",
+    "artist": "Local Upload",
+    "file": "/uploads/02. Breathe In The Air-1763816628072-787095876.mp3",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816628268.1638,
+    "title": "06. Money",
+    "artist": "Local Upload",
+    "file": "/uploads/06. Money-1763816628242-205194326.mp3",
+    "time": "0:00"
+  },
+  {
+    "id": 1763816628411.7224,
+    "title": "08. Any Colour You Like",
+    "artist": "Local Upload",
+    "file": "/uploads/08. Any Colour You Like-1763816628403-200696445.mp3",
+    "time": "0:00"
+  },
+  {
+    "id": 1763817465005.946,
+    "title": "01. Speak To Me",
+    "artist": "Local Upload",
+    "file": "/uploads/01. Speak To Me-1763817464983-142158618.mp3",
+    "time": "1:08"
+  },
+  {
+    "id": 1763817481797.0679,
+    "title": "07. Us And Them",
+    "artist": "Local Upload",
+    "file": "/uploads/07. Us And Them-1763817481746-986053511.mp3",
+    "time": "7:49"
+  },
+  {
+    "id": 1763817482127.2148,
+    "title": "04. Time",
+    "artist": "Local Upload",
+    "file": "/uploads/04. Time-1763817482087-182198639.mp3",
+    "time": "6:49"
+  },
+  {
+    "id": 1763817482248.6577,
+    "title": "10. Eclipse",
+    "artist": "Local Upload",
+    "file": "/uploads/10. Eclipse-1763817482213-623796857.mp3",
+    "time": "2:11"
+  },
+  {
+    "id": 1763817482530.4534,
+    "title": "05. The Great Gig In The Sky",
+    "artist": "Local Upload",
+    "file": "/uploads/05. The Great Gig In The Sky-1763817482449-429769501.mp3",
+    "time": "4:44"
+  },
+  {
+    "id": 1763817482671.3003,
+    "title": "09. Brain Damage",
+    "artist": "Local Upload",
+    "file": "/uploads/09. Brain Damage-1763817482637-198028417.mp3",
+    "time": "3:46"
+  },
+  {
+    "id": 1763817482747.0813,
+    "title": "01. Speak To Me",
+    "artist": "Local Upload",
+    "file": "/uploads/01. Speak To Me-1763817482718-407362247.mp3",
+    "time": "1:08"
+  },
+  {
+    "id": 1763817482904.5178,
+    "title": "03. On The Run",
+    "artist": "Local Upload",
+    "file": "/uploads/03. On The Run-1763817482867-271543398.mp3",
+    "time": "3:50"
+  },
+  {
+    "id": 1763817483066.3428,
+    "title": "02. Breathe In The Air",
+    "artist": "Local Upload",
+    "file": "/uploads/02. Breathe In The Air-1763817483038-722514937.mp3",
+    "time": "2:48"
+  },
+  {
+    "id": 1763817483233.806,
+    "title": "06. Money",
+    "artist": "Local Upload",
+    "file": "/uploads/06. Money-1763817483188-466679637.mp3",
+    "time": "6:22"
+  },
+  {
+    "id": 1763817483420.747,
+    "title": "08. Any Colour You Like",
+    "artist": "Local Upload",
+    "file": "/uploads/08. Any Colour You Like-1763817483378-238928193.mp3",
+    "time": "3:26"
   }
 ]

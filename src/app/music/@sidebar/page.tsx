@@ -106,9 +106,17 @@ const SortablePlaylistItem = ({ playlist }: { playlist: Playlist }) => {
       href={`/music/playlist/${playlist.id}`}
       className="flex gap-3 items-center hover:bg-black/20 rounded-md cursor-pointer px-2 py-2 transition group border border-transparent hover:border-red-500"
     >
-      <div className="h-8 w-8 rounded-md bg-red-900 flex items-center justify-center text-white shadow-sm flex-shrink-0">
-        <ListMusic size={16} />
-      </div>
+      {playlist.image ? (
+        <img
+          src={playlist.image}
+          alt={playlist.name}
+          className="h-8 w-8 rounded-md object-cover shadow-sm flex-shrink-0"
+        />
+      ) : (
+        <div className="h-8 w-8 rounded-md bg-red-900 flex items-center justify-center text-white shadow-sm flex-shrink-0">
+          <ListMusic size={16} />
+        </div>
+      )}
       <div className="overflow-hidden min-w-0 flex-1">
         <p className="text-white text-sm font-medium truncate">
           {playlist.name}
@@ -200,12 +208,12 @@ const Sidebar = () => {
   return (
     <aside className="hidden md:flex md:flex-col w-64 bg-black text-white h-screen fixed left-0 top-0 z-40 overflow-hidden">
       {/* Fixed Header Section */}
-      <section className="p-4 pb-2 flex-shrink-0">
-        <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
+      <section className="p-4 pb-2 flex-shrink-0 pt-6">
+        <h2 className="text-3xl font-bold mb-2 flex items-center gap-2">
           Music App
         </h2>
         <nav>
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-2 border border-transparent hover:border-red-500 rounded-md ">
             <Link href={"/music"}>
               <li className="flex gap-3 items-center hover:bg-black/20 rounded-md cursor-pointer text-lg p-2 transition font-medium">
                 <Home size={22} /> Discover
@@ -216,7 +224,7 @@ const Sidebar = () => {
       </section>
 
       {/* Favourites Section (Scrollable) - Increased height */}
-      <section className="flex-[1.2] flex flex-col min-h-0 px-4 pb-2 border-b border-red-800/50">
+      <section className="flex-[1.1] flex flex-col min-h-0 px-4 pb-2 border-b border-red-800/50">
         <div className="flex-shrink-0 mb-2">
           <h2 className="flex gap-3 items-center text-lg mb-2 font-semibold opacity-90">
             <Heart size={20} /> Favourites
