@@ -51,41 +51,57 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [favourites, setFavourites] = useState<Song[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [deletedSongIds, setDeletedSongIds] = useState<number[]>([]);
+  const [sessionId, setSessionId] = useState<string>("");
 
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [queue, setQueue] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Helper for UUID generation (fallback for non-secure contexts)
+  const generateUUID = () => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  };
+
+  // Initialize Session ID
+  useEffect(() => {
+    let sid = localStorage.getItem("music_session_id");
+    if (!sid) {
+        sid = generateUUID();
+        localStorage.setItem("music_session_id", sid);
+    }
+    setSessionId(sid);
+  }, []);
+
   // Fetch initial data
   useEffect(() => {
+    if (!sessionId) return;
+
     const fetchData = async () => {
       try {
-        const [songsRes, deletedRes] = await Promise.all([
-          fetch("/api/songs"),
-          fetch("/api/deleted-songs")
-        ]);
+        const songsRes = await fetch("/api/songs", {
+            headers: { "x-session-id": sessionId }
+        });
 
         const songsData = await songsRes.json();
-        const deletedData = await deletedRes.json();
-
         const allSongs = songsData.songs || [];
-        const deletedIds = deletedData.deletedSongs || [];
-
-        setDeletedSongIds(deletedIds);
         
-        // Deduplicate songs based on ID
-        const uniqueSongs = Array.from(new Map(allSongs.map((s: Song) => [s.id, s])).values()) as Song[];
-        
-        setSongs(uniqueSongs.filter((s) => !deletedIds.includes(s.id)));
+        setSongs(allSongs);
         
         // Load favourites and playlists from local storage or mock data for now
         // In a real app, these would also be API calls
         const storedFavs = localStorage.getItem("favourites");
         if (storedFavs) {
             const parsedFavs: Song[] = JSON.parse(storedFavs);
-            setFavourites(parsedFavs.filter((s) => !deletedIds.includes(s.id)));
+            // Filter out any songs that might have been deleted from the session
+            const validFavs = parsedFavs.filter(fav => allSongs.some((s: Song) => s.id === fav.id));
+            setFavourites(validFavs);
         }
 
         const storedPlaylists = localStorage.getItem("playlists");
@@ -93,7 +109,7 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
             const parsedPlaylists: Playlist[] = JSON.parse(storedPlaylists);
             const cleanedPlaylists = parsedPlaylists.map(pl => ({
                 ...pl,
-                songs: pl.songs.filter(s => !deletedIds.includes(s.id))
+                songs: pl.songs.filter(s => allSongs.some((as: Song) => as.id === s.id))
             }));
             setPlaylists(cleanedPlaylists);
         }
@@ -106,7 +122,7 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
     };
 
     fetchData();
-  }, []);
+  }, [sessionId]);
 
   // Filter songs based on search query
   const filteredSongs = songs.filter(
@@ -160,6 +176,16 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
   const reorderSongs = (newSongs: Song[]) => {
     setSongs(newSongs);
     // Ideally save order to backend
+    if (sessionId) {
+        fetch("/api/songs", {
+            method: "PUT",
+            headers: { 
+                "Content-Type": "application/json",
+                "x-session-id": sessionId
+            },
+            body: JSON.stringify({ songs: newSongs }),
+        }).catch(err => console.error("Failed to save order", err));
+    }
   };
 
   const addToPlaylist = (playlistId: string, song: Song) => {
@@ -198,6 +224,7 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const uploadSongs = async (files: File[]) => {
+    if (!sessionId) return;
     try {
         const newSongs: Song[] = [];
 
@@ -208,11 +235,13 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
 
             const uploadRes = await fetch("/api/upload", {
                 method: "POST",
+                headers: { "x-session-id": sessionId },
                 body: formData,
             });
 
             if (!uploadRes.ok) {
                 console.error(`Failed to upload ${file.name}`);
+                alert(`Failed to upload ${file.name}. Please try again.`);
                 continue;
             }
 
@@ -246,7 +275,10 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
         for (const song of newSongs) {
              await fetch("/api/songs", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "x-session-id": sessionId
+                },
                 body: JSON.stringify({ song }),
             });
         }
@@ -258,14 +290,24 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteSong = async (id: number) => {
+    if (!sessionId) return;
     // Optimistic update
     setSongs((prev) => prev.filter((s) => s.id !== id));
-    setDeletedSongIds((prev) => [...prev, id]);
+    
+    // Also remove from favourites and playlists
+    setFavourites(prev => prev.filter(s => s.id !== id));
+    setPlaylists(prev => prev.map(pl => ({
+        ...pl,
+        songs: pl.songs.filter(s => s.id !== id)
+    })));
 
     try {
-      await fetch("/api/deleted-songs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      await fetch("/api/songs", {
+        method: "DELETE",
+        headers: { 
+            "Content-Type": "application/json",
+            "x-session-id": sessionId
+        },
         body: JSON.stringify({ songId: id }),
       });
     } catch (error) {
