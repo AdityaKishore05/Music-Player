@@ -249,53 +249,7 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
     try {
         const newSongs: Song[] = [];
 
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            
-            // Upload to Cloudinary using XMLHttpRequest for progress
-            const formData = new FormData();
-            formData.append("file", file);
-            formData.append("upload_preset", "music-player"); 
-            formData.append("cloud_name", "dlq3akqq4"); 
-
-            const url = await new Promise<string>((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                xhr.open("POST", "https://api.cloudinary.com/v1_1/dlq3akqq4/auto/upload");
-
-                xhr.upload.onprogress = (event) => {
-                    if (event.lengthComputable) {
-                        const fileProgress = (event.loaded / event.total) * 100;
-                        // Calculate total progress based on current file index
-                        const totalProgress = ((i + fileProgress / 100) / files.length) * 100;
-                        setUploadProgress(Math.round(totalProgress));
-                    }
-                };
-
-                xhr.onload = () => {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        const response = JSON.parse(xhr.responseText);
-                        resolve(response.secure_url);
-                    } else {
-                        console.error("Cloudinary Error:", xhr.responseText);
-                        reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.responseText}`));
-                    }
-                };
-
-                xhr.onerror = () => reject(new Error("Network error during upload"));
-                
-                xhr.send(formData);
-            });
-
-            // Calculate duration (approximate or fetch if needed, Cloudinary returns it usually)
-            // For simplicity, we'll fetch metadata or just use a default/random if not returned in simple upload
-            // Actually, the previous code fetched duration from the response. Let's try to get it.
-            // We need the full response to get duration. Let's adjust the promise above.
-            
-            // Re-implementing to get full data
-            // ... (See below for cleaner implementation)
-        }
-        
-        // Let's rewrite the loop cleanly
+        // Upload loop
         for (let i = 0; i < files.length; i++) {
              const file = files[i];
              const formData = new FormData();
@@ -354,9 +308,10 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
             setSongs((prev) => [...prev, ...newSongs]);
         }
 
-    } catch (e: any) {
+    } catch (e: unknown) {
         console.error("Upload failed", e);
-        alert(`Upload failed: ${e.message}`);
+        const errorMessage = e instanceof Error ? e.message : "Unknown error";
+        alert(`Upload failed: ${errorMessage}`);
     } finally {
         setUploadProgress(null);
     }
