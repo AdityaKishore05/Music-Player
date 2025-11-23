@@ -253,64 +253,73 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
     setUploadProgress(0);
 
     try {
-        const newSongs: Song[] = [];
+        const progressMap: Record<number, number> = {};
+        const uploadPromises = files.map((file, index) => {
+            return new Promise<Song>(async (resolve, reject) => {
+                const formData = new FormData();
+                formData.append("file", file);
+                formData.append("upload_preset", "music-player"); 
+                formData.append("cloud_name", "dlq3akqq4"); 
 
-        // Upload loop
-        for (let i = 0; i < files.length; i++) {
-             const file = files[i];
-             const formData = new FormData();
-             formData.append("file", file);
-             formData.append("upload_preset", "music-player"); 
-             formData.append("cloud_name", "dlq3akqq4"); 
+                try {
+                    const data = await new Promise<CloudinaryResponse>((xhrResolve, xhrReject) => {
+                        const xhr = new XMLHttpRequest();
+                        xhr.open("POST", "https://api.cloudinary.com/v1_1/dlq3akqq4/auto/upload");
 
-             const data = await new Promise<CloudinaryResponse>((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                xhr.open("POST", "https://api.cloudinary.com/v1_1/dlq3akqq4/auto/upload");
+                        xhr.upload.onprogress = (event) => {
+                            if (event.lengthComputable) {
+                                const percent = (event.loaded / event.total) * 100;
+                                progressMap[index] = percent;
+                                
+                                // Calculate total progress
+                                const totalProgress = Object.values(progressMap).reduce((a, b) => a + b, 0) / files.length;
+                                setUploadProgress(Math.round(totalProgress));
+                            }
+                        };
 
-                xhr.upload.onprogress = (event) => {
-                    if (event.lengthComputable) {
-                        const fileProgress = (event.loaded / event.total) * 100;
-                        const totalProgress = ((i + fileProgress / 100) / files.length) * 100;
-                        setUploadProgress(Math.round(totalProgress));
-                    }
-                };
+                        xhr.onload = () => {
+                            if (xhr.status >= 200 && xhr.status < 300) {
+                                xhrResolve(JSON.parse(xhr.responseText));
+                            } else {
+                                console.error("Cloudinary Error:", xhr.responseText);
+                                xhrReject(new Error(`Upload failed: ${xhr.statusText}`));
+                            }
+                        };
 
-                xhr.onload = () => {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        resolve(JSON.parse(xhr.responseText));
-                    } else {
-                        console.error("Cloudinary Error:", xhr.responseText);
-                        reject(new Error(`Upload failed: ${xhr.statusText}`));
-                    }
-                };
+                        xhr.onerror = () => xhrReject(new Error("Network error"));
+                        xhr.send(formData);
+                    });
 
-                xhr.onerror = () => reject(new Error("Network error"));
-                xhr.send(formData);
-             });
+                    const durationSeconds = data.duration || 0;
+                    const minutes = Math.floor(durationSeconds / 60);
+                    const seconds = Math.floor(durationSeconds % 60);
+                    const duration = `${minutes}:${seconds.toString().padStart(2, "0")}`;
 
-             const durationSeconds = data.duration || 0;
-             const minutes = Math.floor(durationSeconds / 60);
-             const seconds = Math.floor(durationSeconds % 60);
-             const duration = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+                    resolve({
+                        id: Date.now() + Math.random(),
+                        title: file.name.replace(/\.[^/.]+$/, ""),
+                        artist: "My Upload",
+                        file: data.secure_url, 
+                        time: duration,
+                    });
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        });
 
-             const newSong: Song = {
-                id: Date.now() + Math.random(),
-                title: file.name.replace(/\.[^/.]+$/, ""),
-                artist: "My Upload",
-                file: data.secure_url, 
-                time: duration,
-            };
-            newSongs.push(newSong);
-        }
+        const newSongs = await Promise.all(uploadPromises);
 
         if (newSongs.length > 0) {
-            for (const song of newSongs) {
-                 await fetch("/api/songs", {
+            // Save all songs to DB in parallel
+            await Promise.all(newSongs.map(song => 
+                fetch("/api/songs", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ song }),
-                });
-            }
+                })
+            ));
+            
             setSongs((prev) => [...prev, ...newSongs]);
         }
 
