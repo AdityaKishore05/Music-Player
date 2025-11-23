@@ -197,16 +197,18 @@ const PlaylistPage = ({ params }: { params: Promise<{ id: string }> }) => {
       try {
         const formData = new FormData();
         formData.append("file", file);
+        formData.append("upload_preset", "music-player");
+        formData.append("cloud_name", "dlq3akqq4");
 
-        const res = await fetch("/api/upload", {
+        const res = await fetch("https://api.cloudinary.com/v1_1/dlq3akqq4/image/upload", {
           method: "POST",
           body: formData,
         });
 
         if (!res.ok) throw new Error("Upload failed");
 
-        const { url } = await res.json();
-        updatePlaylistImage(playlist.id, url);
+        const data = await res.json();
+        updatePlaylistImage(playlist.id, data.secure_url);
       } catch (error) {
         console.error("Failed to upload image:", error);
         alert("Failed to upload image");
