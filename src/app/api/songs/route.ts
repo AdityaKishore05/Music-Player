@@ -1,39 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readFile, writeFile, mkdir } from "fs/promises";
-import { existsSync } from "fs";
-import path from "path";
-import { Song } from "@/app/music/MusicContext";
+import dbConnect from "@/lib/mongodb";
+import UserSongs from "@/models/Song";
 import { getServerSession } from "next-auth";
-
-const dataDir = path.join(process.cwd(), "data");
-
-function getUserFilePath(email: string) {
-    // Sanitize email to be safe for filename
-    const safeEmail = email.replace(/[^a-zA-Z0-9@.-]/g, "_");
-    return path.join(dataDir, `songs-${safeEmail}.json`);
-}
-
-async function getSongs(email: string) {
-    const filePath = getUserFilePath(email);
-    if (!existsSync(filePath)) {
-        return [];
-    }
-    try {
-        const data = await readFile(filePath, "utf-8");
-        return JSON.parse(data);
-    } catch (error) {
-        console.error("Error parsing song data:", error);
-        return [];
-    }
-}
-
-async function saveSongs(email: string, songs: Song[]) {
-    const filePath = getUserFilePath(email);
-    if (!existsSync(dataDir)) {
-        await mkdir(dataDir, { recursive: true });
-    }
-    await writeFile(filePath, JSON.stringify(songs, null, 2));
-}
 
 export async function GET(request: NextRequest) {
     try {
@@ -42,8 +10,10 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const songs = await getSongs(session.user.email);
-        return NextResponse.json({ songs }, { status: 200 });
+        await dbConnect();
+        const userSongs = await UserSongs.findOne({ userEmail: session.user.email });
+
+        return NextResponse.json({ songs: userSongs ? userSongs.songs : [] }, { status: 200 });
     } catch (error) {
         console.error("Error reading songs:", error);
         return NextResponse.json({ error: "Failed to read songs" }, { status: 500 });
@@ -63,11 +33,16 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "No song data provided" }, { status: 400 });
         }
 
-        const songs = await getSongs(session.user.email);
-        songs.push(song);
-        await saveSongs(session.user.email, songs);
+        await dbConnect();
 
-        return NextResponse.json({ success: true, songs }, { status: 200 });
+        // Find and update, or create if doesn't exist
+        const userSongs = await UserSongs.findOneAndUpdate(
+            { userEmail: session.user.email },
+            { $push: { songs: song } },
+            { new: true, upsert: true }
+        );
+
+        return NextResponse.json({ success: true, songs: userSongs.songs }, { status: 200 });
     } catch (error) {
         console.error("Error saving song:", error);
         return NextResponse.json({ error: "Failed to save song" }, { status: 500 });
@@ -87,7 +62,15 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: "No songs data provided" }, { status: 400 });
         }
 
-        await saveSongs(session.user.email, songs);
+        await dbConnect();
+
+        // Replace the entire songs array (for reordering)
+        await UserSongs.findOneAndUpdate(
+            { userEmail: session.user.email },
+            { $set: { songs: songs } },
+            { upsert: true }
+        );
+
         return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
         console.error("Error updating songs:", error);
@@ -103,18 +86,20 @@ export async function DELETE(request: NextRequest) {
         }
 
         const { songId } = await request.json();
-        console.log(`[DELETE] User: ${session.user.email}, SongID: ${songId}`);
 
         if (!songId) {
             return NextResponse.json({ error: "Song ID required" }, { status: 400 });
         }
 
-        const songs = await getSongs(session.user.email);
-        // Ensure type-safe comparison (ids are numbers, but let's be safe)
-        const newSongs = songs.filter((s: Song) => String(s.id) !== String(songId));
-        await saveSongs(session.user.email, newSongs);
+        await dbConnect();
 
-        return NextResponse.json({ success: true, songs: newSongs }, { status: 200 });
+        const userSongs = await UserSongs.findOneAndUpdate(
+            { userEmail: session.user.email },
+            { $pull: { songs: { id: songId } } },
+            { new: true }
+        );
+
+        return NextResponse.json({ success: true, songs: userSongs ? userSongs.songs : [] }, { status: 200 });
     } catch (error) {
         console.error("Error deleting song:", error);
         return NextResponse.json({ error: "Failed to delete song" }, { status: 500 });

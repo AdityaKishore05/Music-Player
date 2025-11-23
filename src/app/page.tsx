@@ -57,8 +57,8 @@ const HomePage = () => {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8">
             <Link href="/music">
-              <button className="group relative px-8 py-4 bg-red-600 hover:bg-red-700 text-white rounded-full font-bold text-lg transition-all shadow-lg shadow-red-600/30 hover:shadow-red-600/50 hover:scale-105 active:scale-95 flex items-center gap-3">
-                <span className="relative z-10 cursor-pointer">Start Listening</span>
+              <button className="group relative cursor-pointer px-8 py-4 bg-red-600 hover:bg-red-700 text-white rounded-full font-bold text-lg transition-all shadow-lg shadow-red-600/30 hover:shadow-red-600/50 hover:scale-105 active:scale-95 flex items-center gap-3">
+                <span className="relative z-10">Start Listening</span>
                 <div className="bg-white/20 rounded-full p-1 group-hover:translate-x-1 transition-transform">
                     <Play size={16} fill="currentColor" />
                 </div>
